@@ -55,10 +55,10 @@ uint8_t isLineReceived(void)
 
 	uint8_t rValue = 0;
 	//Change from 76
-	if(lineLength()>=11 && lineLength()<= 45)//are there characters in the buffer?
+	if(lineLength()>=11 && lineLength()<= 76)//are there characters in the buffer?
 	{
 		rValue = lineTerminator;//has a line terminator been rcv'd?
-	} else if(lineLength() >45){
+	} else if(lineLength() >77){
 		rValue = 2;
 	}
 	return rValue;

@@ -136,9 +136,6 @@ int main(void)
 	sendResponse(READY);
 
 
-	//Cannot send "YES" during dumping the file
-		//If so, erase all the application space and do the reset
-
 
 	for(;;)
 	{
