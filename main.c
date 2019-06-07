@@ -49,6 +49,9 @@
 #include <string.h>
 /*lint -save  -e970 Disable MISRA rule (6.3) checking. */
 int main(void)
+
+//When it says COMPLETE, it means we're in test application
+
 /*lint -restore Enable MISRA rule (6.3) checking. */
 {
 	/* Write your local variable definition here */
@@ -84,12 +87,18 @@ int main(void)
 
     TI1_Init(TI1_DeviceData);
     TI1_Enable(TI1_DeviceData);
-
+	AS1_TurnTxOff(AS1_DeviceData); //Turn off Tx
+	AS1_TurnRxOff(AS1_DeviceData); //Turn off Rx
     sendResponse(ERASE_CONFIRM);
 
     /*---Bootloader Check ---*/
-	Error = AS1_ReceiveBlock(AS1_DeviceData, line, 4);             /* Start reception of one character */
-	while (!RxFlag && counter < 10000) {                                      /* Wait until characters is received */
+    AS1_TurnRxOn(AS1_DeviceData); //Turn on Rx
+
+	           /* Start reception of one character */
+	while (!RxFlag && counter < 10000 ) {                                      /* Wait until characters is received */
+		AS1_TurnRxOn(AS1_DeviceData); //Turn on Rx
+		GPIO1_SetFieldValue(NULL, PTE, 0b0); //disable Tx, enable Rx
+		AS1_ReceiveBlock(AS1_DeviceData, line, 4);
 		if( (counter%1000) == 999)
 				{
 					time = (counter/1000)+1;
@@ -97,7 +106,6 @@ int main(void)
 					sendResponse(temp);
 				}
 		if(strcmp((char*)line, "YES") == 0 || strcmp((char*)line,"yes") == 0){
-
 			TI1_Disable(TI1_DeviceData);
 			sendResponse(ERASING);
 			if(eraseApplicationSpace() != STATUS_OK)
@@ -137,6 +145,7 @@ int main(void)
 
 		switch(isLineReceived()){
 		case 1:
+//				sendResponse(test);
 				state = parseLine(&block);
 				if(state == STATUS_OK)
 				{
@@ -165,8 +174,10 @@ int main(void)
 									break;
 								default:
 									sendResponse(OK);
-									//soft reset command
-									softReset();
+									if(confirmAppPresence() == STATUS_OK)
+									{
+										launchTargetApplication(APP_START_ADDRESS);
+									}
 									break;
 							}
 						default:

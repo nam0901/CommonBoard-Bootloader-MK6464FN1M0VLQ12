@@ -22,9 +22,9 @@
 #define ERASE_ERROR				("EE\r")
 #define WRITE_ERROR				("WE\r")
 #define ERASE_CONFIRM			("Erase the Application?\r")
-#define ERASING 				("Erasing\r")
+#define ERASING 				(" Erasing\r")
 #define DUMP_FILE_ERROR			("DFE\r")
-
+#define EOF_ERROR 				("NO_EOF\r")
 
 extern void launchTargetApplication(unsigned long l);
 void initalizeBootloader(LP_BLOCK block);

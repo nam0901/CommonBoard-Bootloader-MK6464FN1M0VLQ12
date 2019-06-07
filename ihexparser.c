@@ -32,9 +32,16 @@ static void copyChars(uint8_t *dest, uint8_t* src, uint8_t length);
 static int htoi(const char *s, unsigned long *res);
 
 uint8_t line[LINE_LENGTH];
+//uint8_t test[LINE_LENGTH];
 uint8_t lineIndex;
 uint8_t	lineTerminator;
+uint8_t lineNumber = 0;
 
+//lineNumber in the test file
+uint8_t getLineNumber(void)
+{
+	return lineNumber;
+}
 
 void initializeParser(void)
 {
@@ -44,10 +51,10 @@ void initializeParser(void)
 uint8_t isLineReceived(void)
 {
 	uint8_t rValue = 0;
-	if(lineLength()>=11 && lineLength()<= 77)//are there characters in the buffer?
+	if(lineLength()>=11 && lineLength()<= 76)//are there characters in the buffer?
 	{
 		rValue = lineTerminator;//has a line terminator been rcv'd?
-	} else if(lineLength() > 77){
+	} else if(lineLength() >77){
 		rValue = 2;
 	}
 	return rValue;
@@ -128,6 +135,7 @@ STATUS parseLine(LP_BLOCK block)
 	}
 	return rValue;
 }
+
 STATUS isRecordValid(LP_BLOCK block)
 {
 	STATUS rValue = STATUS_OK;
@@ -146,6 +154,7 @@ STATUS isRecordValid(LP_BLOCK block)
 	}
 	return rValue;
 }
+
 void enqueueChar(uint8_t value)
 {
 	if(lineIndex < (LINE_LENGTH-1))
@@ -155,8 +164,9 @@ void enqueueChar(uint8_t value)
 			case '\r': case '\n':
 				if(lineIndex > 0)
 				{
-					line[lineIndex] = '\0';
+					line[lineIndex] = '\0'; //the end of the line
 //					test[lineIndex] = '\0';
+					lineNumber++;
 					lineIndex = 0;
 					lineTerminator = 1;
 				}
@@ -170,6 +180,7 @@ void enqueueChar(uint8_t value)
 		}
 	}
 }
+
 static uint16_t lineLength(void)
 {
 	uint16_t rValue = 0;
@@ -182,11 +193,13 @@ static uint16_t lineLength(void)
 	}
 	return rValue;
 }
+
 void clearLine(void)
 {
 	line[0] = '\0';
 	lineTerminator = 0;
 }
+
 static STATUS getField(FIELD field, uint32_t *outValue, uint8_t dataIndex, uint8_t *lineBuffer, uint8_t lineLength)
 {
 	uint8_t rValue;
@@ -273,6 +286,7 @@ static STATUS getField(FIELD field, uint32_t *outValue, uint8_t dataIndex, uint8
 	}
 	return rValue;
 }
+
 static void copyChars(uint8_t *dest, uint8_t* src, uint8_t length)
 {
 	while(length)

@@ -89,12 +89,15 @@ typedef struct __BLOCK__
 }BLOCK, *LP_BLOCK;
 
 extern uint8_t line[LINE_LENGTH];
+//extern uint8_t test[LINE_LENGTH];
+extern uint8_t lineNumber;
 
 void enqueueChar(uint8_t value);
 void initializeParser(void);
 void clearLine(void);
 void softReset(void);
-uint8_t isLineReceived(void);
+uint8_t getLineNumber(void);
+uint8_t isLineReceived(void); //Check whether any data from the file is received
 STATUS parseLine(LP_BLOCK block);
 STATUS isRecordValid(LP_BLOCK block);
 

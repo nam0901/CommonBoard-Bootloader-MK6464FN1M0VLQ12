@@ -41,7 +41,6 @@ extern "C" {
 
 volatile int counter;
 volatile int time;
-//volatile int flag = 0;
 
 /*
 ** ===================================================================
@@ -61,6 +60,8 @@ void Cpu_OnNMI(void)
   /* Write your code here ... */
 
 }
+
+/* Transmission from Processor to Real Term*/
 
 /*
 ** ===================================================================
@@ -85,6 +86,7 @@ void AS1_OnBlockReceived(LDD_TUserData *UserDataPtr)
 	RxFlag = TRUE;
 }
 
+//T1 for 10s countdown interval
 /*
 ** ===================================================================
 **     Event       :  TI1_OnInterrupt (module Events)
@@ -113,6 +115,8 @@ void TI1_OnInterrupt(LDD_TUserData *UserDataPtr)
 		}
 }
 
+/* Transmission from RealTerm to processor*/
+
 /*
 ** ===================================================================
 **     Event       :  AS1_OnBlockSent (module Events)
@@ -131,7 +135,7 @@ void TI1_OnInterrupt(LDD_TUserData *UserDataPtr)
 /* ===================================================================*/
 void AS1_OnBlockSent(LDD_TUserData *UserDataPtr)
 {
-	/* Transmission from RealTerm to processor*/
+
 	TxFlag = 1;
 }
 

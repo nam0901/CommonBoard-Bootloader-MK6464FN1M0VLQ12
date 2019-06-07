@@ -73,7 +73,7 @@ STATUS processBootloadRecord(LP_BLOCK block)
 STATUS eraseApplicationSpace(void)
 {
 	STATUS rValue = STATUS_OK;
-	Error = FLASH1_Erase(FLASH1_DeviceData, APP_START_ADDRESS, 0xF8000); //100K - start address = size
+	Error = FLASH1_Erase(FLASH1_DeviceData, APP_START_ADDRESS, 0xF8000); //100K - start address (0x410) = size
 	do
 	{
 		FLASH1_Main(FLASH1_DeviceData);
@@ -207,18 +207,25 @@ void sendResponse(char* response)
 //	{
 //		__asm("nop");
 //	}
+	AS1_CancelBlockReception(AS1_DeviceData);
 	GPIO1_SetFieldValue(NULL, PTE, 0b1); //enable Tx
+	AS1_TurnRxOff(AS1_DeviceData); //Turn off Rx
+	AS1_TurnTxOn(AS1_DeviceData); //Turn on Tx
 	AS1_SendBlock(AS1_DeviceData, response, strlen(response));
-//	while(!AS1_GetTxCompleteStatus(AS1_DeviceData));
-	while(!TxFlag);
+	while(!AS1_GetTxCompleteStatus(AS1_DeviceData));
 	TxFlag = FALSE;
-	GPIO1_SetFieldValue(NULL, PTE, 0b0); //disable Tx, enable Rx
+
 }
 
 void receiveData(void)
 {
+	AS1_CancelBlockTransmission(AS1_DeviceData);
+	GPIO1_SetFieldValue(NULL, PTE, 0b0); //disable Tx, enable Rx
+	AS1_TurnRxOn(AS1_DeviceData); //Turn on Tx
+	AS1_TurnTxOff(AS1_DeviceData); //Turn off Tx
 	AS1_ReceiveBlock(AS1_DeviceData, (LDD_TData*)&rxValue, 0x1U);
 	while(!RxFlag);
 	RxFlag = FALSE;
+
 }
 
