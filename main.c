@@ -109,16 +109,15 @@ int main(void)
 			TI1_Disable(TI1_DeviceData);
 			sendResponse(ERASING);
 			AS1_TurnRxOn(AS1_DeviceData); //Turn on Rx
-			if(eraseApplicationSpace() != STATUS_OK)
-			{
-				sendResponse(ERASE_ERROR);
-				while(1);
-			}
 			flag = 1;
 			break;
-
-
 		}
+	}
+
+	if(eraseApplicationSpace() != STATUS_OK)
+	{
+		sendResponse(ERASE_ERROR);
+		while(1);
 	}
 
 	if(!flag){
