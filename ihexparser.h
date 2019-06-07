@@ -11,6 +11,8 @@
 #define LINE_LENGTH					(128)
 //char test[LINE_LENGTH];
 //#include "bootload.h"
+#include "AS1.h"
+
 #include "MK64F12.h"
 /**
  * Intel Hex record type definitions

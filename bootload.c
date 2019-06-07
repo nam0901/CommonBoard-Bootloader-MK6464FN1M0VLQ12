@@ -221,7 +221,7 @@ void receiveData(void)
 {
 	AS1_CancelBlockTransmission(AS1_DeviceData);
 	GPIO1_SetFieldValue(NULL, PTE, 0b0); //disable Tx, enable Rx
-	AS1_TurnRxOn(AS1_DeviceData); //Turn on Tx
+	AS1_TurnRxOn(AS1_DeviceData); //Turn on Rx
 	AS1_TurnTxOff(AS1_DeviceData); //Turn off Tx
 	AS1_ReceiveBlock(AS1_DeviceData, (LDD_TData*)&rxValue, 0x1U);
 	while(!RxFlag);

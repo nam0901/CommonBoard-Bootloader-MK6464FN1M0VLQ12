@@ -50,11 +50,15 @@ void initializeParser(void)
 
 uint8_t isLineReceived(void)
 {
+	AS1_TurnRxOn(AS1_DeviceData); //Turn on Rx
+	AS1_TurnTxOff(AS1_DeviceData); //Turn off Tx
+
 	uint8_t rValue = 0;
-	if(lineLength()>=11 && lineLength()<= 76)//are there characters in the buffer?
+	//Change from 76
+	if(lineLength()>=11 && lineLength()<= 45)//are there characters in the buffer?
 	{
 		rValue = lineTerminator;//has a line terminator been rcv'd?
-	} else if(lineLength() >77){
+	} else if(lineLength() >45){
 		rValue = 2;
 	}
 	return rValue;
