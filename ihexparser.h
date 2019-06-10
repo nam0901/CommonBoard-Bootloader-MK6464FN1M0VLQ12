@@ -11,9 +11,8 @@
 #define LINE_LENGTH					(128)
 //char test[LINE_LENGTH];
 //#include "bootload.h"
-#include "AS1.h"
-
 #include "MK64F12.h"
+
 /**
  * Intel Hex record type definitions
  *
@@ -47,6 +46,8 @@ typedef enum
 {
 	STATUS_OK,
 	STATUS_END,
+	STATUS_REBOOT,
+	STATUS_DUMP_FILE_ERROR,
 	STATUS_LINE_ERROR,
 	STATUS_FORMAT_ERROR,
 	STATUS_CHECKSUM_ERROR,

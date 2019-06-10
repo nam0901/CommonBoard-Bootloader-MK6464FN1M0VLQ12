@@ -107,10 +107,13 @@ int main(void)
 				}
 		if(strcmp((char*)line, "YES") == 0 || strcmp((char*)line,"yes") == 0){
 			TI1_Disable(TI1_DeviceData);
+
+
 			sendResponse(ERASING);
-			AS1_TurnRxOn(AS1_DeviceData); //Turn on Rx
 			flag = 1;
 			break;
+
+
 		}
 	}
 
@@ -118,6 +121,8 @@ int main(void)
 	{
 		sendResponse(ERASE_ERROR);
 		while(1);
+	}else{
+		sendResponse(ERASED);
 	}
 
 	if(!flag){
@@ -134,6 +139,9 @@ int main(void)
 		}
 	sendResponse(READY);
 
+
+	//Cannot send "YES" during dumping the file
+		//If so, erase all the application space and do the reset
 
 
 	for(;;)
@@ -181,6 +189,9 @@ int main(void)
 							errorCatch = state;
 							break;
 					}
+				}else if(state == STATUS_REBOOT){
+					sendResponse(REBOOT);
+					softReset();
 				}
 				else
 				{

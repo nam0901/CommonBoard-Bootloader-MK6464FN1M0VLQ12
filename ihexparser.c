@@ -34,7 +34,7 @@ static int htoi(const char *s, unsigned long *res);
 uint8_t line[LINE_LENGTH];
 //uint8_t test[LINE_LENGTH];
 uint8_t lineIndex;
-uint8_t	lineTerminator;
+uint8_t	lineTerminator = 1;
 uint8_t lineNumber = 0;
 
 //lineNumber in the test file
@@ -50,11 +50,7 @@ void initializeParser(void)
 
 uint8_t isLineReceived(void)
 {
-	AS1_TurnRxOn(AS1_DeviceData); //Turn on Rx
-	AS1_TurnTxOff(AS1_DeviceData); //Turn off Tx
-
 	uint8_t rValue = 0;
-	//Change from 76
 	if(lineLength()>=11 && lineLength()<= 76)//are there characters in the buffer?
 	{
 		rValue = lineTerminator;//has a line terminator been rcv'd?
@@ -127,6 +123,9 @@ STATUS parseLine(LP_BLOCK block)
 			{
 				return STATUS_FORMAT_ERROR;
 			}
+		}
+		else if(line[0] == 'g'){
+			rValue = STATUS_REBOOT;
 		}
 		else
 		{
