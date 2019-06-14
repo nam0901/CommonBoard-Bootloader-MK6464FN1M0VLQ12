@@ -59,6 +59,7 @@ int main(void)
 	STATUS state;
 	STATUS errorCatch;
     char temp[4];
+    char maxLine[4];
     uint8_t flag  = 0;
     LDD_TError Error;
 
@@ -107,13 +108,17 @@ int main(void)
 				}
 		if(strcmp((char*)line, "YES") == 0 || strcmp((char*)line,"yes") == 0){
 			TI1_Disable(TI1_DeviceData);
-
-
 			sendResponse(ERASING);
 			flag = 1;
 			break;
-
-
+		//}
+		}else if(strcmp((char*)line, "GOTOBOOTLOAD") == 0 || strcmp((char*)line, "gotobootload") == 0){
+			sendResponse(line);
+			TI1_Disable(TI1_DeviceData);
+			flag = 1;
+			sendResponse(REBOOT);
+			softReset();
+			//break;
 		}
 	}
 
@@ -125,6 +130,9 @@ int main(void)
 		sendResponse(ERASED);
 	}
 
+	// AS1 On Block Send: realterm to processor (TxFlag)
+	// AS1 On Receive: processor to realterm (RxFlag)
+
 	if(!flag){
 			AS1_CancelBlockReception(AS1_DeviceData);
 		}
@@ -132,16 +140,18 @@ int main(void)
 
 	clearLine();
 
-
 	if(confirmAppPresence() == STATUS_OK)
-		{
-			launchTargetApplication(APP_START_ADDRESS);
-		}
+	{
+		sendResponse(APP_PRESENECE);
+		launchTargetApplication(APP_START_ADDRESS);
+	}
+
+	//Send Ready after checking
 	sendResponse(READY);
 
 
 	//Cannot send "YES" during dumping the file
-		//If so, erase all the application space and do the reset
+	//If so, erase all the application space and do the reset
 
 
 	for(;;)
@@ -149,8 +159,8 @@ int main(void)
 		receiveData();	//wait for a character
 
 		switch(isLineReceived()){
+
 		case 1:
-//				sendResponse(test);
 				state = parseLine(&block);
 				if(state == STATUS_OK)
 				{
@@ -158,6 +168,7 @@ int main(void)
 					switch(state)
 					{
 						case STATUS_OK:
+
 							break;
 						case STATUS_END:
 							switch(errorCatch)
@@ -178,9 +189,11 @@ int main(void)
 									sendResponse(FORMAT_ERROR);
 									break;
 								default:
+									//There is no error
 									sendResponse(OK);
 									if(confirmAppPresence() == STATUS_OK)
 									{
+										sendResponse(APP_PRESENECE);
 										launchTargetApplication(APP_START_ADDRESS);
 									}
 									break;
@@ -201,16 +214,16 @@ int main(void)
 				clearLine();	//use function here instead of inside parseLine to cover parseLine fail
 
 		break;
-		case 2:
-			// AS1 On Block Send: realterm to processor (TxFlag)
-			// AS1 On Receive: processor to realterm (RxFlag)
+		case 2: //The extra data during dumping the file
 			sendResponse(DUMP_FILE_ERROR);
 			softReset();
 			break;
 		default:
-
+//			sendResponse(DEFAULT);
 			break;
-	}
+		}
+
+
 
 }
 

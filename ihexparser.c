@@ -13,8 +13,9 @@ Line  * ihexparser.c
  *  of the larger C String library.
  */
 
-
+#include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 #include "ihexparser.h"
 
 #define ULONG_MAX			(0xFFFFFFFF)
@@ -36,6 +37,7 @@ uint8_t line[LINE_LENGTH];
 uint8_t lineIndex;
 uint8_t	lineTerminator = 1;
 uint8_t lineNumber = 0;
+uint16_t maxLength = 0;
 
 //lineNumber in the test file
 uint8_t getLineNumber(void)
@@ -48,9 +50,23 @@ void initializeParser(void)
 	clearLine();
 }
 
+
+
 uint8_t isLineReceived(void)
 {
 	uint8_t rValue = 0;
+	//Used for testing purposes
+	if(maxLength < lineLength()){
+				maxLength = lineLength();
+	}
+//
+//	//Delay 1s for display
+//	for(int i=0;i<1000;i++)
+//	{
+//		__asm("nop");
+//	}
+
+	//43 is the maxium length in the test file, Used to be 76
 	if(lineLength()>=11 && lineLength()<= 76)//are there characters in the buffer?
 	{
 		rValue = lineTerminator;//has a line terminator been rcv'd?

@@ -201,6 +201,7 @@ STATUS confirmAppPresence(void)
 	}
 	return rValue;
 }
+
 void sendResponse(char* response)
 {
 //	for(int i=0;i<3000;i++)

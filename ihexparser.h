@@ -94,6 +94,7 @@ typedef struct __BLOCK__
 extern uint8_t line[LINE_LENGTH];
 //extern uint8_t test[LINE_LENGTH];
 extern uint8_t lineNumber;
+extern uint16_t maxLength;
 
 void enqueueChar(uint8_t value);
 void initializeParser(void);
