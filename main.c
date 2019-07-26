@@ -117,6 +117,7 @@ int main(void)
 			}else if(strcmp((char*)line, "YES") == 0 || strcmp((char*)line,"yes") == 0){
 				TI1_Disable(TI1_DeviceData);
 				flag = 1;
+				sendResponse(ERASING);
 				break;
 			}
 		}
@@ -130,8 +131,11 @@ int main(void)
 			}else{
 				//Erase the application
 				sendResponse(ERASED);
+				if(!flag){
+				AS1_CancelBlockReception(AS1_DeviceData);
+				}
+				clearLine();
 				sendResponse(READY);
-
 			}
 		}else{
 			//Launch the application
