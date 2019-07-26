@@ -32,6 +32,7 @@ static STATUS getField(FIELD field, uint32_t *outValue, uint8_t dataIndex, uint8
 static void copyChars(uint8_t *dest, uint8_t* src, uint8_t length);
 static int htoi(const char *s, unsigned long *res);
 
+
 uint8_t line[LINE_LENGTH];
 //uint8_t test[LINE_LENGTH];
 uint8_t lineIndex;
@@ -52,6 +53,7 @@ void initializeParser(void)
 
 
 
+//Filtering the "extra command" when dumping files
 uint8_t isLineReceived(void)
 {
 	uint8_t rValue = 0;
@@ -66,13 +68,15 @@ uint8_t isLineReceived(void)
 //		__asm("nop");
 //	}
 
-	//43 is the maxium length in the test file, Used to be 76
-	if(lineLength()>=11 && lineLength()<= 76)//are there characters in the buffer?
+	//43 is the maxium length in the test file, Used to be 77
+	if(lineLength()>= 11 && lineLength()<= 77)//are there characters in the buffer?
 	{
 		rValue = lineTerminator;//has a line terminator been rcv'd?
-	} else if(lineLength() >77){
+	} else if(lineLength() >90){
 		rValue = 2;
 	}
+
+
 	return rValue;
 }
 STATUS parseLine(LP_BLOCK block)

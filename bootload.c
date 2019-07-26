@@ -93,7 +93,7 @@ static STATUS processEOFRecord(LP_BLOCK block)
 //	Error = FLASH1_Write(FLASH1_DeviceData, &code, LAUNCH_CODE_SEGMENT, 1);
 //	do
 //	{
-//		FLASH1_Main(FLASH1_DeviceData);
+//		FLASH1_Main(FLASH1_DeviceData);3
 //		OpStatus = FLASH1_GetOperationStatus(FLASH1_DeviceData);
 //	} while(!((OpStatus == LDD_FLASH_IDLE) | (OpStatus == LDD_FLASH_FAILED)));
 //	if(OpStatus == LDD_FLASH_FAILED)

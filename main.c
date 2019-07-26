@@ -60,12 +60,25 @@ int main(void)
 	STATUS errorCatch;
     char temp[4];
     char maxLine[4];
+ 	bool uninstalled = TRUE;
+ 	bool reboot = FALSE;
     uint8_t flag  = 0;
     LDD_TError Error;
-
+    counter = 0;
 	/*** Processor Expert internal initialization. DON'T REMOVE THIS CODE!!! ***/
 	PE_low_level_init();
+	/*---Bootloader Mode---*/
+	    initalizeBootloader(&block);
+	    initializeParser();
 
+	    TI1_Init(TI1_DeviceData);
+	    TI1_Enable(TI1_DeviceData);
+		AS1_TurnTxOff(AS1_DeviceData); //Turn off Tx
+		AS1_TurnRxOff(AS1_DeviceData); //Turn off Rx
+
+
+	    /*---Bootloader Check ---*/
+	    AS1_TurnRxOn(AS1_DeviceData); //Turn on Rx
 
 	/*** End of Processor Expert internal initialization.                    ***/
 	/* Write your code here */
@@ -76,51 +89,87 @@ int main(void)
 //		launchTargetApplication(APP_START_ADDRESS);
 //    }
 
-	/*---Clear Application Space---*/
-//    if(eraseApplicationSpace() != STATUS_OK)
-//    {
-//    	while(1);	// Unable to erase flash. TODO: Handle fatal error, discuss with P.M.
-//    }
 
-    /*---Bootloader Mode---*/
-    initalizeBootloader(&block);
-    initializeParser();
+	/*---Application Presence Check---*/
+	if(confirmAppPresence() == STATUS_OK)
+    {
+		//App Installed
+		sendResponse(APP_PRESENECE);
+		sendResponse(ERASE_CONFIRM);
+				   /* Start reception of one character */
+		while (!RxFlag && counter < 10000 ) {                                      /* Wait until characters is received */
+			AS1_TurnRxOn(AS1_DeviceData); //Turn on Rx
+			GPIO1_SetFieldValue(NULL, PTE, 0b0); //disable Tx, enable Rx
+			AS1_ReceiveBlock(AS1_DeviceData, line, 4);
+			if( (counter%1000) == 999)
+					{
+						time = (counter/1000)+1;
+						sprintf(temp, "%d\r",time);
+						sendResponse(temp);
+					}
 
-    TI1_Init(TI1_DeviceData);
-    TI1_Enable(TI1_DeviceData);
-	AS1_TurnTxOff(AS1_DeviceData); //Turn off Tx
-	AS1_TurnRxOff(AS1_DeviceData); //Turn off Rx
-    sendResponse(ERASE_CONFIRM);
-
-    /*---Bootloader Check ---*/
-    AS1_TurnRxOn(AS1_DeviceData); //Turn on Rx
-
-	           /* Start reception of one character */
-	while (!RxFlag && counter < 10000 ) {                                      /* Wait until characters is received */
-		AS1_TurnRxOn(AS1_DeviceData); //Turn on Rx
-		GPIO1_SetFieldValue(NULL, PTE, 0b0); //disable Tx, enable Rx
-		AS1_ReceiveBlock(AS1_DeviceData, line, 4);
-		if( (counter%1000) == 999)
-				{
-					time = (counter/1000)+1;
-					sprintf(temp, "%d\r",time);
-					sendResponse(temp);
-				}
-		if(strcmp((char*)line, "YES") == 0 || strcmp((char*)line,"yes") == 0){
-			TI1_Disable(TI1_DeviceData);
-			sendResponse(ERASING);
-			flag = 1;
-			break;
-		//}
-		}else if(strcmp((char*)line, "GOTOBOOTLOAD") == 0 || strcmp((char*)line, "gotobootload") == 0){
-			sendResponse(line);
-			TI1_Disable(TI1_DeviceData);
-			flag = 1;
-			sendResponse(REBOOT);
-			softReset();
-			//break;
+			if(strcmp((char*)line, "NO") == 0 || strcmp((char*)line,"no") == 0){
+				uninstalled = FALSE;
+				TI1_Disable(TI1_DeviceData);
+				sendResponse(CANCEL);
+				flag = 1;
+				break;
+			}else if(strcmp((char*)line, "YES") == 0 || strcmp((char*)line,"yes") == 0){
+				TI1_Disable(TI1_DeviceData);
+				flag = 1;
+				break;
+			}
 		}
-	}
+
+		if(uninstalled){
+			//Erase the application
+			if(eraseApplicationSpace() != STATUS_OK)
+			{
+				sendResponse(ERASE_ERROR);
+				while(1);
+			}else{
+				//Erase the application
+				sendResponse(ERASED);
+				sendResponse(READY);
+
+			}
+		}else{
+			//Launch the application
+			sendResponse(LAUNCH);
+			launchTargetApplication(APP_START_ADDRESS);
+		}
+
+
+    }else{
+
+    	//No App Installed
+    	sendResponse(NO_APP);
+		sendResponse(ERASE_CONFIRM);
+        /* Start reception of one character */
+		while (!RxFlag && counter < 10000 ) {                                      /* Wait until characters is received */
+			AS1_TurnRxOn(AS1_DeviceData); //Turn on Rx
+			GPIO1_SetFieldValue(NULL, PTE, 0b0); //disable Tx, enable Rx
+			AS1_ReceiveBlock(AS1_DeviceData, line, 4);
+			if( (counter%1000) == 999)
+					{
+						time = (counter/1000)+1;
+						sprintf(temp, "%d\r",time);
+						sendResponse(temp);
+					}
+			if(strcmp((char*)line, "YES") == 0 || strcmp((char*)line,"yes") == 0){
+				TI1_Disable(TI1_DeviceData);
+				sendResponse(ERASING);
+				flag = 1;
+				break;
+			}else if(strcmp((char*)line, "GOTOBOOTLOADER") == 0 || strcmp((char*)line, "gotobootloader") == 0){
+				sendResponse(line);
+				TI1_Disable(TI1_DeviceData);
+				flag = 1;
+				sendResponse(REBOOT);
+				softReset();
+				break;
+			}
+		}
 
 	if(eraseApplicationSpace() != STATUS_OK)
 	{
@@ -130,9 +179,6 @@ int main(void)
 		sendResponse(ERASED);
 	}
 
-	// AS1 On Block Send: realterm to processor (TxFlag)
-	// AS1 On Receive: processor to realterm (RxFlag)
-
 	if(!flag){
 			AS1_CancelBlockReception(AS1_DeviceData);
 		}
@@ -140,15 +186,9 @@ int main(void)
 
 	clearLine();
 
-	if(confirmAppPresence() == STATUS_OK)
-	{
-		sendResponse(APP_PRESENECE);
-		launchTargetApplication(APP_START_ADDRESS);
-	}
-
 	//Send Ready after checking
 	sendResponse(READY);
-
+    }
 
 	//Cannot send "YES" during dumping the file
 	//If so, erase all the application space and do the reset
@@ -219,11 +259,9 @@ int main(void)
 			softReset();
 			break;
 		default:
-//			sendResponse(DEFAULT);
+			sendResponse(DEFAULT);
 			break;
 		}
-
-
 
 }
 

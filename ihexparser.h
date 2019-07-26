@@ -12,7 +12,8 @@
 //char test[LINE_LENGTH];
 //#include "bootload.h"
 #include "MK64F12.h"
-
+#include <stdio.h>
+#include <string.h>
 /**
  * Intel Hex record type definitions
  *
@@ -92,7 +93,6 @@ typedef struct __BLOCK__
 }BLOCK, *LP_BLOCK;
 
 extern uint8_t line[LINE_LENGTH];
-//extern uint8_t test[LINE_LENGTH];
 extern uint8_t lineNumber;
 extern uint16_t maxLength;
 

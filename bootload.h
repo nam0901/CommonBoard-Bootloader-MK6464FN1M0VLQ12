@@ -29,8 +29,9 @@
 #define REBOOT 					(" GO TO BOOTLOADER\r")
 #define APP_PRESENECE			("APP INSTALLED\r")
 #define HERE					("HERE\r")
-#define CASE2					("CASE2\r")
-#define DEFAULT					("Default\r")
+#define NO_APP					("No App\r")
+#define CANCEL					("NO\r")
+#define LAUNCH					("Launch App\r")
 
 extern void launchTargetApplication(unsigned long l);
 void initalizeBootloader(LP_BLOCK block);
