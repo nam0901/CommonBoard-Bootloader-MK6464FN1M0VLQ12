@@ -145,7 +145,7 @@ int main(void)
     	//No App Installed
     	sendResponse(NO_APP);
 		sendResponse(ERASE_CONFIRM);
-        /* Start reception of one character */
+				/* Start reception of one character */
 		while (!RxFlag && counter < 10000 ) {                                      /* Wait until characters is received */
 			AS1_TurnRxOn(AS1_DeviceData); //Turn on Rx
 			GPIO1_SetFieldValue(NULL, PTE, 0b0); //disable Tx, enable Rx
@@ -171,97 +171,95 @@ int main(void)
 			}
 		}
 
-	if(eraseApplicationSpace() != STATUS_OK)
-	{
-		sendResponse(ERASE_ERROR);
-		while(1);
-	}else{
-		sendResponse(ERASED);
-	}
-
-	if(!flag){
-			AS1_CancelBlockReception(AS1_DeviceData);
+		if(eraseApplicationSpace() != STATUS_OK)
+		{
+			sendResponse(ERASE_ERROR);
+			while(1);
+		}else{
+			sendResponse(ERASED);
 		}
 
 
-	clearLine();
+		if(!flag){
+				AS1_CancelBlockReception(AS1_DeviceData);
+			}
 
-	//Send Ready after checking
-	sendResponse(READY);
+
+		clearLine();
+
+		//Send Ready after checking
+		sendResponse(READY);
+
     }
 
-	//Cannot send "YES" during dumping the file
-	//If so, erase all the application space and do the reset
+for(;;)
+{
+	receiveData();	//wait for a character
 
+	switch(isLineReceived()){
 
-	for(;;)
-	{
-		receiveData();	//wait for a character
-
-		switch(isLineReceived()){
-
-		case 1:
-				state = parseLine(&block);
-				if(state == STATUS_OK)
+	case 1:
+			state = parseLine(&block);
+			if(state == STATUS_OK)
+			{
+				state = processBootloadRecord(&block);
+				switch(state)
 				{
-					state = processBootloadRecord(&block);
-					switch(state)
-					{
-						case STATUS_OK:
+					case STATUS_OK:
 
-							break;
-						case STATUS_END:
-							switch(errorCatch)
-							{
-								case STATUS_CHECKSUM_ERROR:
-									sendResponse(CHECKSUM_ERROR);
-									break;
-								case STATUS_ERASE_ERROR:
-									sendResponse(ERASE_ERROR);
-									break;
-								case STATUS_WRITE_ERROR:
-									sendResponse(WRITE_ERROR);
-									break;
-								case STATUS_LINE_ERROR:
-									sendResponse(LINE_ERROR);
-									break;
-								case STATUS_FORMAT_ERROR:
-									sendResponse(FORMAT_ERROR);
-									break;
-								default:
-									//There is no error
-									sendResponse(OK);
-									if(confirmAppPresence() == STATUS_OK)
-									{
-										sendResponse(APP_PRESENECE);
-										launchTargetApplication(APP_START_ADDRESS);
-									}
-									break;
-							}
-						default:
-							errorCatch = state;
-							break;
-					}
-				}else if(state == STATUS_REBOOT){
-					sendResponse(REBOOT);
-					softReset();
+						break;
+					case STATUS_END:
+						switch(errorCatch)
+						{
+							case STATUS_CHECKSUM_ERROR:
+								sendResponse(CHECKSUM_ERROR);
+								break;
+							case STATUS_ERASE_ERROR:
+								sendResponse(ERASE_ERROR);
+								break;
+							case STATUS_WRITE_ERROR:
+								sendResponse(WRITE_ERROR);
+								break;
+							case STATUS_LINE_ERROR:
+								sendResponse(LINE_ERROR);
+								break;
+							case STATUS_FORMAT_ERROR:
+								sendResponse(FORMAT_ERROR);
+								break;
+							default:
+								//There is no error
+								sendResponse(OK);
+								if(confirmAppPresence() == STATUS_OK)
+								{
+									sendResponse(APP_PRESENECE);
+									launchTargetApplication(APP_START_ADDRESS);
+								}
+								break;
+						}
+					default:
+						errorCatch = state;
+						break;
 				}
-				else
-				{
-					errorCatch = state;
-				}
+			}else if(state == STATUS_REBOOT){
+				sendResponse(REBOOT);
+				softReset();
+			}
+			else
+			{
+				errorCatch = state;
+			}
 
-				clearLine();	//use function here instead of inside parseLine to cover parseLine fail
+			clearLine();	//use function here instead of inside parseLine to cover parseLine fail
 
+	break;
+	case 2: //The extra data during dumping the file
+		sendResponse(DUMP_FILE_ERROR);
+		softReset();
 		break;
-		case 2: //The extra data during dumping the file
-			sendResponse(DUMP_FILE_ERROR);
-			softReset();
-			break;
-		default:
-			sendResponse(DEFAULT);
-			break;
-		}
+	default:
+//			sendResponse(DEFAULT);
+		break;
+	}
 
 }
 
