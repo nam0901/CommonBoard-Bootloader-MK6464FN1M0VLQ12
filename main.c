@@ -165,22 +165,13 @@ int main(void)
 				sendResponse(ERASING);
 				flag = 1;
 				break;
-			}else if(strcmp((char*)line, "GOTOBOOTLOADER") == 0 || strcmp((char*)line, "gotobootloader") == 0){
-				sendResponse(line);
+			}else if(strcmp((char*)line, "NO") == 0 || strcmp((char*)line, "no") == 0){
 				TI1_Disable(TI1_DeviceData);
 				flag = 1;
-				sendResponse(REBOOT);
-				softReset();
+				sendResponse(CANCEL);
+				uninstalled = FALSE;
 				break;
 			}
-		}
-
-		if(eraseApplicationSpace() != STATUS_OK)
-		{
-			sendResponse(ERASE_ERROR);
-			while(1);
-		}else{
-			sendResponse(ERASED);
 		}
 
 
@@ -188,12 +179,20 @@ int main(void)
 				AS1_CancelBlockReception(AS1_DeviceData);
 			}
 
-
-		clearLine();
-
-		//Send Ready after checking
-		sendResponse(READY);
-
+		if(!uninstalled){
+			clearLine();
+		}else{
+			if(eraseApplicationSpace() != STATUS_OK)
+			{
+				sendResponse(ERASE_ERROR);
+				while(1);
+			}else{
+				sendResponse(ERASED);
+			}
+			clearLine();
+			//Send Ready after checking
+			sendResponse(READY);
+		}
     }
 
 for(;;)
