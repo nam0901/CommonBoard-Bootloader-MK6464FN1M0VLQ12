@@ -32,6 +32,7 @@
 #define NO_APP					("No App\r")
 #define CANCEL					("NO\r")
 #define LAUNCH					("Launch App\r")
+#define VERSION					("Version 5.9\r")
 
 extern void launchTargetApplication(unsigned long l);
 void initalizeBootloader(LP_BLOCK block);
@@ -39,6 +40,7 @@ void sendResponse(char* response);
 void receiveData(void);
 STATUS processBootloadRecord(LP_BLOCK block);
 STATUS eraseApplicationSpace();
+STATUS loadApplicationSpace(void);
 STATUS confirmAppPresence(void);
 
 

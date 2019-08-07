@@ -4,8 +4,12 @@
  *  Created on: Jun 15, 2017
  *      Author: tgack
  */
-
+#include <stdio.h>
+#include <stdlib.h>
 #include <stdint.h>
+#include <sys/stat.h>
+#include <fcntl.h> // for open
+#include <unistd.h> // for close
 #include "bootload.h"
 #include "AS1.h"
 #include "FLASH1.h"
@@ -26,6 +30,54 @@ volatile bool TxFlag = FALSE;
 LDD_TError Error;
 LDD_FLASH_TOperationStatus OpStatus;
 
+
+static char* extractNameFromPath(char *path) {
+	  char temp[1024];
+	  int index = 0;
+	  int pathIndex = 0;
+
+	  while(path[pathIndex] != '\0') {
+
+	    if(path[pathIndex] == '\\') {
+	      index = 0;
+	      pathIndex++;
+	      continue;
+	    }
+	    temp[index] = path[pathIndex];
+	    index++;
+	    pathIndex++;
+	  }
+
+	  temp[index] = '\0';
+	  char* name = (char*) malloc(index);
+	  strcpy(name, temp);
+
+	  return name;
+	}
+
+static char* readFile(char* path) {
+  int fd = open(path, O_RDONLY, 0666);
+  if(fd < 0) {
+    printf("Error: Couldn't open file: %s\n", extractNameFromPath(path));
+    perror("  - ");
+    exit(-1);
+  }
+
+  char buf;
+  int currentPos = 0;
+  char* fileContents = (char*) malloc(1024);
+
+  while(read(fd, &buf, 1) != 0) {
+    fileContents[currentPos] = buf;
+    currentPos++;
+  }
+  fileContents[currentPos] = '\0';
+  close(fd);
+  return fileContents;
+}
+
+
+
 /*!
  * @brief Application entry point.
  */
@@ -33,6 +85,7 @@ extern void launchTargetApplication(unsigned long l)
 {
 	__asm("ldr sp, [r0,#0]");	// load the stack pointer value from the program's reset vector
 	__asm("ldr pc, [r0,#4]");	// load the program counter value from the program's reset vector to cause operation to continue from there
+
 }
 void initalizeBootloader(LP_BLOCK block)
 {
@@ -181,6 +234,9 @@ static void updateAddressMSW(LP_BLOCK block)
 	}
 	block->mswAddress = address;
 }
+
+
+
 STATUS confirmAppPresence(void)
 {
 	STATUS rValue = STATUS_OK;

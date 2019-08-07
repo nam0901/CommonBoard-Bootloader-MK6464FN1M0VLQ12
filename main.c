@@ -89,59 +89,59 @@ int main(void)
 //		launchTargetApplication(APP_START_ADDRESS);
 //    }
 
-
+	 sendResponse(VERSION);
 	/*---Application Presence Check---*/
 	if(confirmAppPresence() == STATUS_OK)
     {
 		//App Installed
 		sendResponse(APP_PRESENECE);
-		sendResponse(ERASE_CONFIRM);
-				   /* Start reception of one character */
-		while (!RxFlag && counter < 10000 ) {                                      /* Wait until characters is received */
-			AS1_TurnRxOn(AS1_DeviceData); //Turn on Rx
-			GPIO1_SetFieldValue(NULL, PTE, 0b0); //disable Tx, enable Rx
-			AS1_ReceiveBlock(AS1_DeviceData, line, 4);
-			if( (counter%1000) == 999)
-					{
-						time = (counter/1000)+1;
-						sprintf(temp, "%d\r",time);
-						sendResponse(temp);
-					}
-
-			if(strcmp((char*)line, "NO") == 0 || strcmp((char*)line,"no") == 0){
-				uninstalled = FALSE;
-				TI1_Disable(TI1_DeviceData);
-				sendResponse(CANCEL);
-				flag = 1;
-				break;
-			}else if(strcmp((char*)line, "YES") == 0 || strcmp((char*)line,"yes") == 0){
-				TI1_Disable(TI1_DeviceData);
-				flag = 1;
-				sendResponse(ERASING);
-				break;
-			}
-		}
-
-		if(uninstalled){
-			//Erase the application
-			if(eraseApplicationSpace() != STATUS_OK)
-			{
-				sendResponse(ERASE_ERROR);
-				while(1);
-			}else{
-				//Erase the application
-				sendResponse(ERASED);
-				if(!flag){
-				AS1_CancelBlockReception(AS1_DeviceData);
-				}
-				clearLine();
-				sendResponse(READY);
-			}
-		}else{
+//		sendResponse(ERASE_CONFIRM);
+//				   /* Start reception of one character */
+//		while (!RxFlag && counter < 10000 ) {                                      /* Wait until characters is received */
+//			AS1_TurnRxOn(AS1_DeviceData); //Turn on Rx
+//			GPIO1_SetFieldValue(NULL, PTE, 0b0); //disable Tx, enable Rx
+//			AS1_ReceiveBlock(AS1_DeviceData, line, 4);
+//			if( (counter%1000) == 999)
+//					{
+//						time1 = (counter/1000)+1;
+//						sprintf(temp, "%d\r",time1);
+//						sendResponse(temp);
+//					}
+//
+//			if(strcmp((char*)line, "NO") == 0 || strcmp((char*)line,"no") == 0){
+//				uninstalled = FALSE;
+//				TI1_Disable(TI1_DeviceData);
+//				sendResponse(CANCEL);
+//				flag = 1;
+//				break;
+//			}else if(strcmp((char*)line, "YES") == 0 || strcmp((char*)line,"yes") == 0){
+//				TI1_Disable(TI1_DeviceData);
+//				flag = 1;
+//				sendResponse(ERASING);
+//				break;
+//			}
+//		}
+//
+//		if(uninstalled){
+//			//Erase the application
+//			if(eraseApplicationSpace() != STATUS_OK)
+//			{
+//				sendResponse(ERASE_ERROR);
+//				while(1);
+//			}else{
+//				//Erase the application
+//				sendResponse(ERASED);
+//				if(!flag){
+//				AS1_CancelBlockReception(AS1_DeviceData);
+//				}
+//				clearLine();
+//				sendResponse(READY);
+//			}
+//		}else{
 			//Launch the application
 			sendResponse(LAUNCH);
 			launchTargetApplication(APP_START_ADDRESS);
-		}
+//		}
 
 
     }else{
@@ -149,52 +149,29 @@ int main(void)
     	//No App Installed
     	sendResponse(NO_APP);
 		sendResponse(ERASE_CONFIRM);
+
 				/* Start reception of one character */
-		while (!RxFlag && counter < 10000 ) {                                      /* Wait until characters is received */
-			AS1_TurnRxOn(AS1_DeviceData); //Turn on Rx
-			GPIO1_SetFieldValue(NULL, PTE, 0b0); //disable Tx, enable Rx
-			AS1_ReceiveBlock(AS1_DeviceData, line, 4);
-			if( (counter%1000) == 999)
-					{
-						time = (counter/1000)+1;
-						sprintf(temp, "%d\r",time);
-						sendResponse(temp);
-					}
-			if(strcmp((char*)line, "YES") == 0 || strcmp((char*)line,"yes") == 0){
-				TI1_Disable(TI1_DeviceData);
-				sendResponse(ERASING);
-				flag = 1;
-				break;
-			}else if(strcmp((char*)line, "NO") == 0 || strcmp((char*)line, "no") == 0){
-				TI1_Disable(TI1_DeviceData);
-				flag = 1;
-				sendResponse(CANCEL);
-				uninstalled = FALSE;
-				break;
-			}
-		}
 
 
-		if(!flag){
+		if(eraseApplicationSpace() != STATUS_OK)
+		{
+			sendResponse(ERASE_ERROR);
+			while(1);
+		}else{
+			sendResponse(ERASED);
+			clearLine();
+			if(!flag)
+			{
 				AS1_CancelBlockReception(AS1_DeviceData);
 			}
 
-		if(!uninstalled){
-			clearLine();
-		}else{
-			if(eraseApplicationSpace() != STATUS_OK)
-			{
-				sendResponse(ERASE_ERROR);
-				while(1);
-			}else{
-				sendResponse(ERASED);
-			}
-			clearLine();
-			//Send Ready after checking
 			sendResponse(READY);
 		}
-    }
 
+		//Send Ready after checking
+
+    }
+	sendResponse(HERE);
 for(;;)
 {
 	receiveData();	//wait for a character
@@ -245,7 +222,7 @@ for(;;)
 				}
 			}else if(state == STATUS_REBOOT){
 				sendResponse(REBOOT);
-				softReset();
+//				softReset();
 			}
 			else
 			{
@@ -257,12 +234,13 @@ for(;;)
 	break;
 	case 2: //The extra data during dumping the file
 		sendResponse(DUMP_FILE_ERROR);
-		softReset();
+//		softReset();
 		break;
 	default:
 //			sendResponse(DEFAULT);
 		break;
 	}
+
 
 }
 

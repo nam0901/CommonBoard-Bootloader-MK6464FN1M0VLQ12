@@ -80,7 +80,7 @@ extern volatile uint8_t rxValue;
 extern volatile bool RxFlag;
 extern volatile bool TxFlag;
 extern volatile int counter;
-extern volatile int time;
+extern volatile int time1;
 
 void AS1_OnBlockReceived(LDD_TUserData *UserDataPtr);
 

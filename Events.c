@@ -40,7 +40,7 @@ extern "C" {
 #include "ihexparser.h"
 
 volatile int counter;
-volatile int time;
+volatile int time1;
 
 /*
 ** ===================================================================
