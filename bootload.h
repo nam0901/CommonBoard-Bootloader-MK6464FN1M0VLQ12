@@ -26,14 +26,14 @@
 #define ERASED	 				("ERASED\r")
 #define DUMP_FILE_ERROR			("DFE\r")
 #define EOF_ERROR 				("NO_EOF\r")
-#define REBOOT 					(" GO TO BOOTLOADER\r")
+#define REBOOT 					("GO TO BOOTLOADER\r")
 #define APP_PRESENECE			("APP INSTALLED\r")
 #define HERE					("HERE\r")
-#define NO_APP					("No App\r")
+#define NO_APP					("NO APP\r")
 #define CANCEL					("NO\r")
-#define LAUNCH					("Launch App\r")
-#define VERSION					("Version 5.9\r")
-
+#define LAUNCH					("LAUNCH\r")
+#define VERSION					("Bootloader Ver 5.9\r")
+#define DEFAULT					("DEFAULT\r")
 extern void launchTargetApplication(unsigned long l);
 void initalizeBootloader(LP_BLOCK block);
 void sendResponse(char* response);

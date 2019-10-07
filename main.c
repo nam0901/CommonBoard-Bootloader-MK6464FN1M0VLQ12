@@ -60,7 +60,8 @@ int main(void)
 	STATUS errorCatch;
     char temp[4];
     char maxLine[4];
- 	bool uninstalled = TRUE;
+    bool upgradeCB = FALSE;
+ 	bool uninstalled = FALSE;
  	bool reboot = FALSE;
     uint8_t flag  = 0;
     LDD_TError Error;
@@ -68,110 +69,88 @@ int main(void)
 	/*** Processor Expert internal initialization. DON'T REMOVE THIS CODE!!! ***/
 	PE_low_level_init();
 	/*---Bootloader Mode---*/
-	    initalizeBootloader(&block);
-	    initializeParser();
+	initalizeBootloader(&block);
+	initializeParser();
 
-	    TI1_Init(TI1_DeviceData);
-	    TI1_Enable(TI1_DeviceData);
-		AS1_TurnTxOff(AS1_DeviceData); //Turn off Tx
-		AS1_TurnRxOff(AS1_DeviceData); //Turn off Rx
+	TI1_Init(TI1_DeviceData);
+	TI1_Enable(TI1_DeviceData);
+	AS1_TurnTxOff(AS1_DeviceData); //Turn off Tx
+	AS1_TurnRxOff(AS1_DeviceData); //Turn off Rx
 
 
-	    /*---Bootloader Check ---*/
-	    AS1_TurnRxOn(AS1_DeviceData); //Turn on Rx
+	/*---Bootloader Check ---*/
+	AS1_TurnRxOn(AS1_DeviceData); //Turn on Rx
 
 	/*** End of Processor Expert internal initialization.                    ***/
 	/* Write your code here */
 	/* For example: for(;;) { } */
 	/*---Application Presence Check---*/
-//	if((getBootstrapConfig() == LAUNCH_CODE))
-//    {
-//		launchTargetApplication(APP_START_ADDRESS);
-//    }
 
 	 sendResponse(VERSION);
-	/*---Application Presence Check---*/
-	if(confirmAppPresence() == STATUS_OK)
-    {
-		//App Installed
-		sendResponse(APP_PRESENECE);
-//		sendResponse(ERASE_CONFIRM);
-//				   /* Start reception of one character */
-//		while (!RxFlag && counter < 10000 ) {                                      /* Wait until characters is received */
-//			AS1_TurnRxOn(AS1_DeviceData); //Turn on Rx
-//			GPIO1_SetFieldValue(NULL, PTE, 0b0); //disable Tx, enable Rx
-//			AS1_ReceiveBlock(AS1_DeviceData, line, 4);
-//			if( (counter%1000) == 999)
-//					{
-//						time1 = (counter/1000)+1;
-//						sprintf(temp, "%d\r",time1);
-//						sendResponse(temp);
-//					}
-//
-//			if(strcmp((char*)line, "NO") == 0 || strcmp((char*)line,"no") == 0){
-//				uninstalled = FALSE;
-//				TI1_Disable(TI1_DeviceData);
-//				sendResponse(CANCEL);
-//				flag = 1;
-//				break;
-//			}else if(strcmp((char*)line, "YES") == 0 || strcmp((char*)line,"yes") == 0){
-//				TI1_Disable(TI1_DeviceData);
-//				flag = 1;
-//				sendResponse(ERASING);
-//				break;
-//			}
-//		}
-//
-//		if(uninstalled){
-//			//Erase the application
-//			if(eraseApplicationSpace() != STATUS_OK)
-//			{
-//				sendResponse(ERASE_ERROR);
-//				while(1);
-//			}else{
-//				//Erase the application
-//				sendResponse(ERASED);
-//				if(!flag){
-//				AS1_CancelBlockReception(AS1_DeviceData);
+	 if(RCM_SRS1 & RCM_SRS1_SW_MASK){
+		 //Software Reset
+		 sendResponse(REBOOT);
+		 while (counter < 5000 ) {    //within 5 seconds
+			// receiveData();	//wait for a character
+				AS1_TurnRxOn(AS1_DeviceData); //Turn on Rx
+				GPIO1_SetFieldValue(NULL, PTE, 0b0); //disable Tx, enable Rx
+				AS1_ReceiveBlock(AS1_DeviceData, line, 10);
+				if( (counter%1000) == 999)
+				{
+					time1 = (counter/1000)+1;
+					sprintf(temp, "%d\r",time1);
+					sendResponse(temp);
+				}
+
+//				if(strcmp((char*)line, "BootloadCB") == 0){
+//					upgradeCB = TRUE;
+//					sendResponse(HERE);
 //				}
-//				clearLine();
-//				sendResponse(READY);
-//			}
-//		}else{
+				 if(strcmp((char*)line, "BootloadCB") == 0 ){
+					 continue;
+				 }
+				 else if(strcmp((char*)line,"yes") == 0){
+					TI1_Disable(TI1_DeviceData);
+					flag = 1;
+					uninstalled = TRUE;
+					sendResponse(ERASING);
+					break;
+				}
+		 }
+
+		 if(uninstalled){
+			 if(eraseApplicationSpace() != STATUS_OK)
+				{
+					sendResponse(ERASE_ERROR);
+					while(1);
+				}else{
+					sendResponse(ERASED);
+					clearLine();
+					if(!flag)
+					{
+						AS1_CancelBlockReception(AS1_DeviceData);
+					}
+
+					sendResponse(READY);
+				}
+		 }
+	 }
+		 sendResponse(DEFAULT);
+		 /*---Application Presence Check---*/
+		if(confirmAppPresence() == STATUS_OK)
+		{
+			//App Installed
+			sendResponse(APP_PRESENECE);
 			//Launch the application
 			sendResponse(LAUNCH);
 			launchTargetApplication(APP_START_ADDRESS);
-//		}
 
+		     }else{
+		     	//No App Installed
+		     	sendResponse(NO_APP);
 
-    }else{
-
-    	//No App Installed
-    	sendResponse(NO_APP);
-		sendResponse(ERASE_CONFIRM);
-
-				/* Start reception of one character */
-
-
-		if(eraseApplicationSpace() != STATUS_OK)
-		{
-			sendResponse(ERASE_ERROR);
-			while(1);
-		}else{
-			sendResponse(ERASED);
-			clearLine();
-			if(!flag)
-			{
-				AS1_CancelBlockReception(AS1_DeviceData);
-			}
-
-			sendResponse(READY);
-		}
-
-		//Send Ready after checking
-
-    }
-	sendResponse(HERE);
+		   }
+		sendResponse("Before the loop\r");
 for(;;)
 {
 	receiveData();	//wait for a character
@@ -212,6 +191,7 @@ for(;;)
 								if(confirmAppPresence() == STATUS_OK)
 								{
 									sendResponse(APP_PRESENECE);
+									sendResponse(LAUNCH);
 									launchTargetApplication(APP_START_ADDRESS);
 								}
 								break;
@@ -222,7 +202,10 @@ for(;;)
 				}
 			}else if(state == STATUS_REBOOT){
 				sendResponse(REBOOT);
-//				softReset();
+				softReset();
+			}else if(state = STATUS_ERASE){
+				//Ignore this line
+				sendResponse(READY);
 			}
 			else
 			{
@@ -234,7 +217,6 @@ for(;;)
 	break;
 	case 2: //The extra data during dumping the file
 		sendResponse(DUMP_FILE_ERROR);
-//		softReset();
 		break;
 	default:
 //			sendResponse(DEFAULT);

@@ -72,7 +72,7 @@ uint8_t isLineReceived(void)
 	if(lineLength()>= 11 && lineLength()<= 77)//are there characters in the buffer?
 	{
 		rValue = lineTerminator;//has a line terminator been rcv'd?
-	} else if(lineLength() >90){
+	} else if(lineLength() > 77){
 		rValue = 2;
 	}
 
@@ -144,8 +144,12 @@ STATUS parseLine(LP_BLOCK block)
 				return STATUS_FORMAT_ERROR;
 			}
 		}
-		else if(line[0] == 'g'){
+		else if(line[0] == 'B' && line[1] == 'o' && line[2] == 'o' && line[3] == 't' && line[4] == 'l' && line[5] == 'o' && line[6] == 'a'
+		     && line[7] == 'd' && line[8] == 'C' && line[9] == 'B')
+		{
 			rValue = STATUS_REBOOT;
+		}else if(line[0] == 'y'){
+			rValue = STATUS_ERASE;
 		}
 		else
 		{
