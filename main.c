@@ -63,6 +63,7 @@ int main(void)
     bool upgradeCB = FALSE;
  	bool uninstalled = FALSE;
  	bool reboot = FALSE;
+ 	bool noApp = FALSE;
     uint8_t flag  = 0;
     LDD_TError Error;
     counter = 0;
@@ -107,7 +108,7 @@ int main(void)
 //					sendResponse(HERE);
 //				}
 				 if(strcmp((char*)line, "BootloadCB") == 0 ){
-					 continue;
+					 upgradeCB = TRUE;
 				 }
 				 else if(strcmp((char*)line,"yes") == 0){
 					TI1_Disable(TI1_DeviceData);
@@ -148,81 +149,82 @@ int main(void)
 		     }else{
 		     	//No App Installed
 		     	sendResponse(NO_APP);
-
+		     	noApp = TRUE;
 		   }
 		sendResponse("Before the loop\r");
 for(;;)
 {
-	receiveData();	//wait for a character
+	if(upgradeCB || noApp){
+		receiveData();	//wait for a character
 
-	switch(isLineReceived()){
+		switch(isLineReceived()){
 
-	case 1:
-			state = parseLine(&block);
-			if(state == STATUS_OK)
-			{
-				state = processBootloadRecord(&block);
-				switch(state)
+		case 1:
+				state = parseLine(&block);
+				if(state == STATUS_OK)
 				{
-					case STATUS_OK:
+					state = processBootloadRecord(&block);
+					switch(state)
+					{
+						case STATUS_OK:
 
-						break;
-					case STATUS_END:
-						switch(errorCatch)
-						{
-							case STATUS_CHECKSUM_ERROR:
-								sendResponse(CHECKSUM_ERROR);
-								break;
-							case STATUS_ERASE_ERROR:
-								sendResponse(ERASE_ERROR);
-								break;
-							case STATUS_WRITE_ERROR:
-								sendResponse(WRITE_ERROR);
-								break;
-							case STATUS_LINE_ERROR:
-								sendResponse(LINE_ERROR);
-								break;
-							case STATUS_FORMAT_ERROR:
-								sendResponse(FORMAT_ERROR);
-								break;
-							default:
-								//There is no error
-								sendResponse(OK);
-								if(confirmAppPresence() == STATUS_OK)
-								{
-									sendResponse(APP_PRESENECE);
-									sendResponse(LAUNCH);
-									launchTargetApplication(APP_START_ADDRESS);
-								}
-								break;
-						}
-					default:
-						errorCatch = state;
-						break;
+							break;
+						case STATUS_END:
+							switch(errorCatch)
+							{
+								case STATUS_CHECKSUM_ERROR:
+									sendResponse(CHECKSUM_ERROR);
+									break;
+								case STATUS_ERASE_ERROR:
+									sendResponse(ERASE_ERROR);
+									break;
+								case STATUS_WRITE_ERROR:
+									sendResponse(WRITE_ERROR);
+									break;
+								case STATUS_LINE_ERROR:
+									sendResponse(LINE_ERROR);
+									break;
+								case STATUS_FORMAT_ERROR:
+									sendResponse(FORMAT_ERROR);
+									break;
+								default:
+									//There is no error
+									sendResponse(OK);
+									if(confirmAppPresence() == STATUS_OK)
+									{
+										sendResponse(APP_PRESENECE);
+										sendResponse(LAUNCH);
+										launchTargetApplication(APP_START_ADDRESS);
+									}
+									break;
+							}
+						default:
+							errorCatch = state;
+							break;
+					}
+				}else if(state == STATUS_REBOOT){
+					sendResponse(REBOOT);
+					softReset();
+				}else if(state = STATUS_ERASE){
+					//Ignore this line
+					sendResponse(READY);
 				}
-			}else if(state == STATUS_REBOOT){
-				sendResponse(REBOOT);
-				softReset();
-			}else if(state = STATUS_ERASE){
-				//Ignore this line
-				sendResponse(READY);
-			}
-			else
-			{
-				errorCatch = state;
-			}
+				else
+				{
+					errorCatch = state;
+				}
 
-			clearLine();	//use function here instead of inside parseLine to cover parseLine fail
+				clearLine();	//use function here instead of inside parseLine to cover parseLine fail
 
-	break;
-	case 2: //The extra data during dumping the file
-		sendResponse(DUMP_FILE_ERROR);
 		break;
-	default:
-//			sendResponse(DEFAULT);
-		break;
+		case 2: //The extra data during dumping the file
+			sendResponse(DUMP_FILE_ERROR);
+			break;
+		default:
+	//			sendResponse(DEFAULT);
+			break;
+		}
 	}
-
 
 }
 
