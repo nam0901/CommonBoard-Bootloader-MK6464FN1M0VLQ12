@@ -203,11 +203,12 @@ for(;;)
 							break;
 					}
 				}else if(state == STATUS_REBOOT){
-					sendResponse(REBOOT);
-					softReset();
+//					sendResponse(REBOOT);
+					continue;
 				}else if(state = STATUS_ERASE){
 					//Ignore this line
-					sendResponse(READY);
+//					sendResponse(READY);
+					continue;
 				}
 				else
 				{
